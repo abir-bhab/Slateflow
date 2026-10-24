@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate متوقف شد</string>
     <string name="dashboard_service_killed_message">سرویس پس‌زمینه به‌طور غیرمنتظره متوقف شد. برای ادامه استفاده از دستورها، آن را در تنظیمات دسترس‌پذیری دوباره فعال کنید.</string>
     <string name="dashboard_service_killed_dismiss">رد کردن</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">بازنویسی مدل (اختیاری)</string>
+    <string name="commands_model_placeholder">خالی = مدل پیش‌فرض ارائه‌دهنده</string>
+    <string name="settings_fallback_title">ارائه‌دهنده جایگزین</string>
+    <string name="settings_fallback_none">هیچ‌کدام</string>
+    <string name="settings_preview_title">پیش‌نمایش قبل از جایگزینی</string>
+    <string name="settings_preview_desc">نتیجه هوش مصنوعی را نشان می‌دهد و قبل از جایگزینی متن از شما می‌پرسد (فقط دستورات تایپ‌شده)</string>
+    <string name="preview_title">پیش‌نمایش</string>
+    <string name="preview_replace">جایگزین کن</string>
+    <string name="preview_keep_original">نگه‌داشتن متن اصلی</string>
+    <string name="preview_kept_original">متن اصلی شما نگه داشته شد</string>
 </resources>

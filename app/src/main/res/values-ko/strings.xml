@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate이(가) 중단되었습니다</string>
     <string name="dashboard_service_killed_message">백그라운드 서비스가 예기치 않게 중지되었습니다. 명령을 계속 사용하려면 접근성 설정에서 다시 활성화하세요.</string>
     <string name="dashboard_service_killed_dismiss">닫기</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">모델 재정의(선택 사항)</string>
+    <string name="commands_model_placeholder">비어 있음 = 제공업체 기본 모델</string>
+    <string name="settings_fallback_title">대체 제공업체</string>
+    <string name="settings_fallback_none">없음</string>
+    <string name="settings_preview_title">바꾸기 전에 미리보기</string>
+    <string name="settings_preview_desc">AI 결과를 표시하고 텍스트를 바꾸기 전에 확인합니다(입력한 명령만 해당)</string>
+    <string name="preview_title">미리보기</string>
+    <string name="preview_replace">바꾸기</string>
+    <string name="preview_keep_original">원본 유지</string>
+    <string name="preview_kept_original">원본 텍스트가 유지되었습니다</string>
 </resources>

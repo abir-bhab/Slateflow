@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate kesintiye uğradı</string>
     <string name="dashboard_service_killed_message">Arka plan hizmeti beklenmedik şekilde durdu. Komutları kullanmaya devam etmek için erişilebilirlik ayarlarından yeniden etkinleştirin.</string>
     <string name="dashboard_service_killed_dismiss">Kapat</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Model geçersiz kılma (isteğe bağlı)</string>
+    <string name="commands_model_placeholder">Boş = sağlayıcının varsayılan modeli</string>
+    <string name="settings_fallback_title">Yedek Sağlayıcı</string>
+    <string name="settings_fallback_none">Yok</string>
+    <string name="settings_preview_title">Değiştirmeden önce önizleme</string>
+    <string name="settings_preview_desc">AI sonucunu gösterir ve metninizi değiştirmeden önce sorar (yalnızca yazılan komutlar)</string>
+    <string name="preview_title">Önizleme</string>
+    <string name="preview_replace">Değiştir</string>
+    <string name="preview_keep_original">Orijinali koru</string>
+    <string name="preview_kept_original">Orijinal metniniz korundu</string>
 </resources>

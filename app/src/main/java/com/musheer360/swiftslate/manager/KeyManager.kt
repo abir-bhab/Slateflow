@@ -2,6 +2,8 @@ package com.musheer360.swiftslate.manager
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.musheer360.swiftslate.model.PrefKeys
+import com.musheer360.swiftslate.model.ProviderType
 import org.json.JSONArray
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -12,9 +14,26 @@ class KeyManager internal constructor(
     constructor(context: Context) : this(context, AndroidKeystoreCipher())
 
     private val prefs: SharedPreferences = context.getSharedPreferences("secure_keys_prefs", Context.MODE_PRIVATE)
+    private val settingsPrefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    /**
+     * Keys live in one pool per provider (smart upgrades), so a command can fall back to a
+     * second provider with that provider's own keys. The canonical [PREF_KEY_ARRAY] slot
+     * always holds the *active* provider's pool — the storage layout the app has always
+     * used — while inactive providers' pools wait in side slots named by this function
+     * until [ensureCanonicalOwnership] swaps them in.
+     */
+    private fun storageKeyFor(pool: String): String = "keys_array_$pool"
+
+    /** The pool UI-facing calls operate on: the currently active provider's. */
+    fun activePool(): String = ProviderType.sanitize(
+        try { settingsPrefs.getString(PrefKeys.PROVIDER_TYPE, null) } catch (_: Exception) { null }
+    )
 
     companion object {
         private const val PREF_KEY_ARRAY = "keys_array"
+        /** Which provider the canonical [PREF_KEY_ARRAY] blob currently belongs to. */
+        private const val PREF_KEY_OWNER = "keys_array_owner"
         private const val CACHE_TTL_MS = 5_000L
         private const val MAX_KEY_LENGTH = 256
         // Invalid-key marks expire. A 403 is not always the key's fault (e.g. selecting a
@@ -59,8 +78,48 @@ class KeyManager internal constructor(
     private fun JSONArray.toStringList(): List<String> =
         (0 until length()).map { getString(it) }
 
+    /**
+     * Reconciles the canonical slot with the active provider before every canonical
+     * read/write. [PREF_KEY_OWNER] records which provider the [PREF_KEY_ARRAY] blob
+     * belongs to; when the user has switched providers since, the canonical blob moves
+     * to the old provider's side slot and the new provider's blob (if any) takes its
+     * place — so one provider's keys can never leak into another provider's commands.
+     */
+    @Synchronized
+    private fun ensureCanonicalOwnership() {
+        val active = activePool()
+        val owner = prefs.getString(PREF_KEY_OWNER, null)
+        if (owner == null) {
+            // First run under pools: the canonical blob (if any) belongs to the active
+            // provider. One interim build kept the active pool in its side slot instead,
+            // so adopt that blob when the canonical slot is empty.
+            if (prefs.getString(PREF_KEY_ARRAY, null) == null) {
+                val slotted = prefs.getString(storageKeyFor(active), null)
+                if (slotted != null) {
+                    prefs.edit().putString(PREF_KEY_ARRAY, slotted)
+                        .remove(storageKeyFor(active)).apply()
+                }
+            }
+            prefs.edit().putString(PREF_KEY_OWNER, active).apply()
+            return
+        }
+        if (owner == active) return
+        val editor = prefs.edit()
+        val canonical = prefs.getString(PREF_KEY_ARRAY, null)
+        if (canonical != null) editor.putString(storageKeyFor(owner), canonical)
+        else editor.remove(storageKeyFor(owner))
+        val incoming = prefs.getString(storageKeyFor(active), null)
+        if (incoming != null) editor.putString(PREF_KEY_ARRAY, incoming).remove(storageKeyFor(active))
+        else editor.remove(PREF_KEY_ARRAY)
+        editor.putString(PREF_KEY_OWNER, active).apply()
+        cachedKeys = null
+        cachedCipherText = null
+        cacheTimestamp = 0L
+    }
+
     @Synchronized
     fun getKeys(): List<String> {
+        ensureCanonicalOwnership()
         val now = System.currentTimeMillis()
         val cached = cachedKeys
         if (cached != null && now - cacheTimestamp < CACHE_TTL_MS) return cached
@@ -95,6 +154,23 @@ class KeyManager internal constructor(
         return list
     }
 
+    /**
+     * Keys of a specific provider's pool (smart upgrades) — e.g. the fallback provider a
+     * command is about to retry on. The active provider resolves to the canonical slot;
+     * any other provider's blob is read from its side slot and only decrypted, never
+     * mutated here. A pool becomes editable when its provider is made active in Settings.
+     */
+    @Synchronized
+    fun getKeys(pool: String): List<String> {
+        if (pool == activePool()) return getKeys()
+        val stored = prefs.getString(storageKeyFor(pool), null) ?: return emptyList()
+        if (isLegacyPlaintext(stored)) {
+            return try { JSONArray(stored).toStringList() } catch (_: Exception) { emptyList() }
+        }
+        val jsonStr = cipher.decrypt(stored) ?: return emptyList()
+        return try { JSONArray(jsonStr).toStringList() } catch (_: Exception) { emptyList() }
+    }
+
     private fun cacheKeys(keys: List<String>, cipherText: String?) {
         cachedKeys = keys
         cachedCipherText = cipherText
@@ -103,6 +179,7 @@ class KeyManager internal constructor(
 
     @Synchronized
     private fun saveKeys(keys: List<String>): Boolean {
+        ensureCanonicalOwnership()
         val arr = JSONArray(keys)
         return try {
             val cipherText = cipher.encrypt(arr.toString())
@@ -151,8 +228,8 @@ class KeyManager internal constructor(
      * at all, so the command could fail with a healthy key sitting idle.
      */
     @Synchronized
-    fun getNextKey(alreadyTried: Set<String> = emptySet()): String? {
-        val keys = getKeys()
+    fun getNextKey(alreadyTried: Set<String> = emptySet(), pool: String = activePool()): String? {
+        val keys = getKeys(pool)
         if (keys.isEmpty()) return null
 
         val now = System.currentTimeMillis()
@@ -204,8 +281,8 @@ class KeyManager internal constructor(
         return true
     }
 
-    fun getShortestWaitTimeMs(): Long? {
-        val keys = getKeys()
+    fun getShortestWaitTimeMs(pool: String = activePool()): Long? {
+        val keys = getKeys(pool)
         if (keys.isEmpty()) return null
         val now = System.currentTimeMillis()
         val waits = keys.filter { !isInvalid(it) }

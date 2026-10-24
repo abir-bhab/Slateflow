@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate был прерван</string>
     <string name="dashboard_service_killed_message">Фоновая служба неожиданно остановилась. Снова включите её в настройках специальных возможностей, чтобы продолжить использовать команды.</string>
     <string name="dashboard_service_killed_dismiss">Скрыть</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Переопределение модели (необязательно)</string>
+    <string name="commands_model_placeholder">Пусто = модель провайдера по умолчанию</string>
+    <string name="settings_fallback_title">Резервный провайдер</string>
+    <string name="settings_fallback_none">Нет</string>
+    <string name="settings_preview_title">Предпросмотр перед заменой</string>
+    <string name="settings_preview_desc">Показывать результат ИИ и спрашивать, прежде чем заменить ваш текст (только введённые команды)</string>
+    <string name="preview_title">Предпросмотр</string>
+    <string name="preview_replace">Заменить</string>
+    <string name="preview_keep_original">Оставить оригинал</string>
+    <string name="preview_kept_original">Ваш исходный текст сохранён</string>
 </resources>

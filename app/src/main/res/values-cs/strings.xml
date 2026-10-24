@@ -151,4 +151,15 @@
     <string name="dashboard_service_killed_title">Aplikace SwiftSlate byla přerušena</string>
     <string name="dashboard_service_killed_message">Služba na pozadí se neočekávaně zastavila. Znovu ji povolte v nastavení usnadnění, abyste mohli dál používat příkazy.</string>
     <string name="dashboard_service_killed_dismiss">Zavřít</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Přepsání modelu (volitelné)</string>
+    <string name="commands_model_placeholder">Prázdné = výchozí model poskytovatele</string>
+    <string name="settings_fallback_title">Záložní poskytovatel</string>
+    <string name="settings_fallback_none">Žádný</string>
+    <string name="settings_preview_title">Náhled před nahrazením</string>
+    <string name="settings_preview_desc">Zobrazí výsledek AI a zeptá se, než nahradí váš text (pouze zadané příkazy)</string>
+    <string name="preview_title">Náhled</string>
+    <string name="preview_replace">Nahradit</string>
+    <string name="preview_keep_original">Ponechat originál</string>
+    <string name="preview_kept_original">Váš původní text byl ponechán</string>
 </resources>

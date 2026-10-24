@@ -121,7 +121,7 @@ class ProcessTextViewModel(
                     withContext(Dispatchers.IO) {
                         runTextCommand(
                             getApplication<Application>(), keyManager, geminiClient, openAIClient,
-                            command.prompt, selection.text
+                            command.prompt, selection.text, commandModel = command.model
                         )
                     }
                 }

@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">Aplikacja SwiftSlate została przerwana</string>
     <string name="dashboard_service_killed_message">Usługa działająca w tle nieoczekiwanie się zatrzymała. Włącz ją ponownie w ustawieniach ułatwień dostępu, aby nadal używać poleceń.</string>
     <string name="dashboard_service_killed_dismiss">Zamknij</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Nadpisanie modelu (opcjonalnie)</string>
+    <string name="commands_model_placeholder">Puste = domyślny model dostawcy</string>
+    <string name="settings_fallback_title">Dostawca zapasowy</string>
+    <string name="settings_fallback_none">Brak</string>
+    <string name="settings_preview_title">Podgląd przed zastąpieniem</string>
+    <string name="settings_preview_desc">Pokaż wynik AI i zapytaj, zanim zastąpi twój tekst (tylko wpisywane polecenia)</string>
+    <string name="preview_title">Podgląd</string>
+    <string name="preview_replace">Zastąp</string>
+    <string name="preview_keep_original">Zachowaj oryginał</string>
+    <string name="preview_kept_original">Twój oryginalny tekst został zachowany</string>
 </resources>

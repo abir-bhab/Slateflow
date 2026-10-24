@@ -150,4 +150,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate wurde unterbrochen</string>
     <string name="dashboard_service_killed_message">Der Hintergrunddienst wurde unerwartet beendet. Aktiviere ihn in den Bedienungshilfen erneut, um Befehle weiter zu verwenden.</string>
     <string name="dashboard_service_killed_dismiss">Schließen</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Modell überschreiben (optional)</string>
+    <string name="commands_model_placeholder">Leer = Standardmodell des Anbieters</string>
+    <string name="settings_fallback_title">Fallback-Anbieter</string>
+    <string name="settings_fallback_none">Keiner</string>
+    <string name="settings_preview_title">Vorschau vor dem Ersetzen</string>
+    <string name="settings_preview_desc">KI-Ergebnis anzeigen und fragen, bevor dein Text ersetzt wird (nur getippte Befehle)</string>
+    <string name="preview_title">Vorschau</string>
+    <string name="preview_replace">Ersetzen</string>
+    <string name="preview_keep_original">Original behalten</string>
+    <string name="preview_kept_original">Dein Originaltext wurde behalten</string>
 </resources>

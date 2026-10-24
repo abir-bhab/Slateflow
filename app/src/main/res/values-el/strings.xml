@@ -151,4 +151,15 @@
     <string name="dashboard_service_killed_title">Το SwiftSlate διακόπηκε</string>
     <string name="dashboard_service_killed_message">Η υπηρεσία παρασκηνίου σταμάτησε απροσδόκητα. Ενεργοποιήστε την ξανά στις ρυθμίσεις προσβασιμότητας για να συνεχίσετε να χρησιμοποιείτε εντολές.</string>
     <string name="dashboard_service_killed_dismiss">Απόρριψη</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Παράκαμψη μοντέλου (προαιρετικό)</string>
+    <string name="commands_model_placeholder">Κενό = προεπιλεγμένο μοντέλο παρόχου</string>
+    <string name="settings_fallback_title">Εφεδρικός πάροχος</string>
+    <string name="settings_fallback_none">Κανένας</string>
+    <string name="settings_preview_title">Προεπισκόπηση πριν την αντικατάσταση</string>
+    <string name="settings_preview_desc">Εμφάνιση του αποτελέσματος AI και ερώτηση πριν αντικαταστήσει το κείμενό σας (μόνο πληκτρολογημένες εντολές)</string>
+    <string name="preview_title">Προεπισκόπηση</string>
+    <string name="preview_replace">Αντικατάσταση</string>
+    <string name="preview_keep_original">Διατήρηση πρωτοτύπου</string>
+    <string name="preview_kept_original">Το αρχικό σας κείμενο διατηρήθηκε</string>
 </resources>

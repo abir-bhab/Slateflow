@@ -148,4 +148,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate se interrumpió</string>
     <string name="dashboard_service_killed_message">El servicio en segundo plano se detuvo inesperadamente. Vuelve a activarlo en los ajustes de accesibilidad para seguir usando comandos.</string>
     <string name="dashboard_service_killed_dismiss">Descartar</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Reemplazo de modelo (opcional)</string>
+    <string name="commands_model_placeholder">Vacío = modelo predeterminado del proveedor</string>
+    <string name="settings_fallback_title">Proveedor alternativo</string>
+    <string name="settings_fallback_none">Ninguno</string>
+    <string name="settings_preview_title">Vista previa antes de reemplazar</string>
+    <string name="settings_preview_desc">Muestra el resultado de la IA y pregunta antes de reemplazar tu texto (solo comandos escritos)</string>
+    <string name="preview_title">Vista previa</string>
+    <string name="preview_replace">Reemplazar</string>
+    <string name="preview_keep_original">Conservar el original</string>
+    <string name="preview_kept_original">Se conservó tu texto original</string>
 </resources>

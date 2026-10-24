@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">A SwiftSlate megszakadt</string>
     <string name="dashboard_service_killed_message">A háttérszolgáltatás váratlanul leállt. Engedélyezze újra a kisegítő lehetőségek beállításaiban a parancsok további használatához.</string>
     <string name="dashboard_service_killed_dismiss">Elvetés</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Modellfelülírás (opcionális)</string>
+    <string name="commands_model_placeholder">Üres = a szolgáltató alapértelmezett modellje</string>
+    <string name="settings_fallback_title">Tartalék szolgáltató</string>
+    <string name="settings_fallback_none">Nincs</string>
+    <string name="settings_preview_title">Előnézet csere előtt</string>
+    <string name="settings_preview_desc">Megjeleníti az AI eredményét, és rákérdez, mielőtt lecserélné a szöveget (csak gépelt parancsok)</string>
+    <string name="preview_title">Előnézet</string>
+    <string name="preview_replace">Csere</string>
+    <string name="preview_keep_original">Eredeti megtartása</string>
+    <string name="preview_kept_original">Az eredeti szöveged megmaradt</string>
 </resources>

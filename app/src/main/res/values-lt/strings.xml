@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate buvo nutraukta</string>
     <string name="dashboard_service_killed_message">Foninė tarnyba netikėtai sustojo. Iš naujo įjunkite ją pritaikymo neįgaliesiems nustatymuose, kad galėtumėte toliau naudoti komandas.</string>
     <string name="dashboard_service_killed_dismiss">Uždaryti</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Modelio nepaisymas (nebūtina)</string>
+    <string name="commands_model_placeholder">Tuščia = numatytasis teikėjo modelis</string>
+    <string name="settings_fallback_title">Atsarginis teikėjas</string>
+    <string name="settings_fallback_none">Nėra</string>
+    <string name="settings_preview_title">Peržiūra prieš pakeičiant</string>
+    <string name="settings_preview_desc">Rodo AI rezultatą ir paklausia prieš pakeičiant jūsų tekstą (tik įvestos komandos)</string>
+    <string name="preview_title">Peržiūra</string>
+    <string name="preview_replace">Pakeisti</string>
+    <string name="preview_keep_original">Palikti originalą</string>
+    <string name="preview_kept_original">Jūsų originalus tekstas išsaugotas</string>
 </resources>

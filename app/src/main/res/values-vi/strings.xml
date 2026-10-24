@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate đã bị gián đoạn</string>
     <string name="dashboard_service_killed_message">Dịch vụ nền đã dừng bất ngờ. Hãy bật lại trong cài đặt trợ năng để tiếp tục sử dụng lệnh.</string>
     <string name="dashboard_service_killed_dismiss">Bỏ qua</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Ghi đè mô hình (tùy chọn)</string>
+    <string name="commands_model_placeholder">Trống = mô hình mặc định của nhà cung cấp</string>
+    <string name="settings_fallback_title">Nhà cung cấp dự phòng</string>
+    <string name="settings_fallback_none">Không có</string>
+    <string name="settings_preview_title">Xem trước trước khi thay thế</string>
+    <string name="settings_preview_desc">Hiển thị kết quả AI và hỏi trước khi thay thế văn bản của bạn (chỉ lệnh đã nhập)</string>
+    <string name="preview_title">Xem trước</string>
+    <string name="preview_replace">Thay thế</string>
+    <string name="preview_keep_original">Giữ nguyên bản gốc</string>
+    <string name="preview_kept_original">Văn bản gốc của bạn đã được giữ lại</string>
 </resources>

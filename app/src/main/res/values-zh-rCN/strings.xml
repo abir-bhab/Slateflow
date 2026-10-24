@@ -148,4 +148,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate 已中断</string>
     <string name="dashboard_service_killed_message">后台服务意外停止。请在无障碍设置中重新启用它，以继续使用命令。</string>
     <string name="dashboard_service_killed_dismiss">忽略</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">模型覆盖（可选）</string>
+    <string name="commands_model_placeholder">留空 = 服务商默认模型</string>
+    <string name="settings_fallback_title">备用服务商</string>
+    <string name="settings_fallback_none">无</string>
+    <string name="settings_preview_title">替换前预览</string>
+    <string name="settings_preview_desc">显示 AI 结果，并在替换文本前先询问（仅限输入的命令）</string>
+    <string name="preview_title">预览</string>
+    <string name="preview_replace">替换</string>
+    <string name="preview_keep_original">保留原文</string>
+    <string name="preview_kept_original">已保留您的原文</string>
 </resources>

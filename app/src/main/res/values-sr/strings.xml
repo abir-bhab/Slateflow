@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate је прекинут</string>
     <string name="dashboard_service_killed_message">Позадинска услуга се неочекивано зауставила. Поново је омогућите у подешавањима приступачности да бисте наставили да користите команде.</string>
     <string name="dashboard_service_killed_dismiss">Одбаци</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Замена модела (опционо)</string>
+    <string name="commands_model_placeholder">Празно = подразумевани модел провајдера</string>
+    <string name="settings_fallback_title">Резервни провајдер</string>
+    <string name="settings_fallback_none">Нема</string>
+    <string name="settings_preview_title">Преглед пре замене</string>
+    <string name="settings_preview_desc">Прикажи AI резултат и питај пре него што замени ваш текст (само унете команде)</string>
+    <string name="preview_title">Преглед</string>
+    <string name="preview_replace">Замени</string>
+    <string name="preview_keep_original">Задржи оригинал</string>
+    <string name="preview_kept_original">Ваш оригинални текст је задржан</string>
 </resources>

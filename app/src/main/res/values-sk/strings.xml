@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate bol prerušený</string>
     <string name="dashboard_service_killed_message">Služba na pozadí sa nečakane zastavila. Znova ju povoľte v nastaveniach dostupnosti, aby ste mohli naďalej používať príkazy.</string>
     <string name="dashboard_service_killed_dismiss">Zavrieť</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Prepísanie modelu (voliteľné)</string>
+    <string name="commands_model_placeholder">Prázdne = predvolený model poskytovateľa</string>
+    <string name="settings_fallback_title">Záložný poskytovateľ</string>
+    <string name="settings_fallback_none">Žiadny</string>
+    <string name="settings_preview_title">Ukážka pred nahradením</string>
+    <string name="settings_preview_desc">Zobrazí výsledok AI a spýta sa, skôr než nahradí váš text (len zadané príkazy)</string>
+    <string name="preview_title">Ukážka</string>
+    <string name="preview_replace">Nahradiť</string>
+    <string name="preview_keep_original">Ponechať originál</string>
+    <string name="preview_kept_original">Váš pôvodný text bol ponechaný</string>
 </resources>

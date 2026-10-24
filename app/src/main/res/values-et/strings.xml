@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate katkes</string>
     <string name="dashboard_service_killed_message">Taustateenus peatus ootamatult. Lülita see juurdepääsetavuse seadetes uuesti sisse, et käske edasi kasutada.</string>
     <string name="dashboard_service_killed_dismiss">Loobu</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Mudeli ülekirjutamine (valikuline)</string>
+    <string name="commands_model_placeholder">Tühi = pakkuja vaikemudel</string>
+    <string name="settings_fallback_title">Varupakkuja</string>
+    <string name="settings_fallback_none">Puudub</string>
+    <string name="settings_preview_title">Eelvaade enne asendamist</string>
+    <string name="settings_preview_desc">Kuva AI tulemus ja küsi enne teksti asendamist (ainult tipitud käsud)</string>
+    <string name="preview_title">Eelvaade</string>
+    <string name="preview_replace">Asenda</string>
+    <string name="preview_keep_original">Säilita originaal</string>
+    <string name="preview_kept_original">Sinu algne tekst säilitati</string>
 </resources>

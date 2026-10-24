@@ -151,4 +151,15 @@
     <string name="dashboard_service_killed_title">S\'ha interromput SwiftSlate</string>
     <string name="dashboard_service_killed_message">El servei en segon pla s\'ha aturat de manera inesperada. Torneu a activar-lo als paràmetres d\'accessibilitat per continuar fent servir les ordres.</string>
     <string name="dashboard_service_killed_dismiss">Ignora</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Substitució de model (opcional)</string>
+    <string name="commands_model_placeholder">Buit = model predeterminat del proveïdor</string>
+    <string name="settings_fallback_title">Proveïdor alternatiu</string>
+    <string name="settings_fallback_none">Cap</string>
+    <string name="settings_preview_title">Vista prèvia abans de substituir</string>
+    <string name="settings_preview_desc">Mostra el resultat de la IA i demana confirmació abans de substituir el text (només ordres escrites)</string>
+    <string name="preview_title">Vista prèvia</string>
+    <string name="preview_replace">Substitueix</string>
+    <string name="preview_keep_original">Conserva l’original</string>
+    <string name="preview_kept_original">El text original s’ha conservat</string>
 </resources>

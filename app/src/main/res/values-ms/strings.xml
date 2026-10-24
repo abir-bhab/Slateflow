@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate terganggu</string>
     <string name="dashboard_service_killed_message">Perkhidmatan latar belakang berhenti tanpa diduga. Dayakan semula dalam tetapan kebolehaksesan untuk terus menggunakan arahan.</string>
     <string name="dashboard_service_killed_dismiss">Abaikan</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Ganti model (pilihan)</string>
+    <string name="commands_model_placeholder">Kosong = model lalai pembekal</string>
+    <string name="settings_fallback_title">Pembekal sandaran</string>
+    <string name="settings_fallback_none">Tiada</string>
+    <string name="settings_preview_title">Pratonton sebelum mengganti</string>
+    <string name="settings_preview_desc">Tunjukkan hasil AI dan tanya sebelum menggantikan teks anda (arahan ditaip sahaja)</string>
+    <string name="preview_title">Pratonton</string>
+    <string name="preview_replace">Ganti</string>
+    <string name="preview_keep_original">Kekalkan yang asal</string>
+    <string name="preview_kept_original">Teks asal anda dikekalkan</string>
 </resources>
