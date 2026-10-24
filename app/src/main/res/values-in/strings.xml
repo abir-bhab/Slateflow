@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate terhenti</string>
     <string name="dashboard_service_killed_message">Layanan latar belakang berhenti secara tak terduga. Aktifkan lagi di setelan aksesibilitas untuk terus menggunakan perintah.</string>
     <string name="dashboard_service_killed_dismiss">Abaikan</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Timpa model (opsional)</string>
+    <string name="commands_model_placeholder">Kosong = model default penyedia</string>
+    <string name="settings_fallback_title">Penyedia cadangan</string>
+    <string name="settings_fallback_none">Tidak ada</string>
+    <string name="settings_preview_title">Pratinjau sebelum mengganti</string>
+    <string name="settings_preview_desc">Tampilkan hasil AI dan tanyakan sebelum mengganti teks Anda (hanya perintah yang diketik)</string>
+    <string name="preview_title">Pratinjau</string>
+    <string name="preview_replace">Ganti</string>
+    <string name="preview_keep_original">Pertahankan aslinya</string>
+    <string name="preview_kept_original">Teks asli Anda dipertahankan</string>
 </resources>

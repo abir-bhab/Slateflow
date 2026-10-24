@@ -151,4 +151,15 @@
     <string name="dashboard_service_killed_title">تمت مقاطعة SwiftSlate</string>
     <string name="dashboard_service_killed_message">توقفت خدمة الخلفية بشكل غير متوقع. أعد تفعيلها في إعدادات إمكانية الوصول لمواصلة استخدام الأوامر.</string>
     <string name="dashboard_service_killed_dismiss">تجاهل</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">تجاوز النموذج (اختياري)</string>
+    <string name="commands_model_placeholder">فارغ = النموذج الافتراضي للمزوّد</string>
+    <string name="settings_fallback_title">المزوّد الاحتياطي</string>
+    <string name="settings_fallback_none">لا شيء</string>
+    <string name="settings_preview_title">معاينة قبل الاستبدال</string>
+    <string name="settings_preview_desc">عرض نتيجة الذكاء الاصطناعي والسؤال قبل استبدال النص (الأوامر المكتوبة فقط)</string>
+    <string name="preview_title">معاينة</string>
+    <string name="preview_replace">استبدال</string>
+    <string name="preview_keep_original">الاحتفاظ بالأصلي</string>
+    <string name="preview_kept_original">تم الاحتفاظ بنصك الأصلي</string>
 </resources>

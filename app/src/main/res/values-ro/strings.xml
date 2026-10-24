@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate a fost întrerupt</string>
     <string name="dashboard_service_killed_message">Serviciul din fundal s-a oprit în mod neașteptat. Reactivați-l în setările de accesibilitate pentru a continua să folosiți comenzile.</string>
     <string name="dashboard_service_killed_dismiss">Închide</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Suprascriere model (opțional)</string>
+    <string name="commands_model_placeholder">Gol = modelul implicit al furnizorului</string>
+    <string name="settings_fallback_title">Furnizor de rezervă</string>
+    <string name="settings_fallback_none">Niciunul</string>
+    <string name="settings_preview_title">Previzualizare înainte de înlocuire</string>
+    <string name="settings_preview_desc">Afișează rezultatul AI și cere confirmarea înainte de a înlocui textul (doar comenzi tastate)</string>
+    <string name="preview_title">Previzualizare</string>
+    <string name="preview_replace">Înlocuiește</string>
+    <string name="preview_keep_original">Păstrează originalul</string>
+    <string name="preview_kept_original">Textul original a fost păstrat</string>
 </resources>

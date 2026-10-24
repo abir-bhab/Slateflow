@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate が中断されました</string>
     <string name="dashboard_service_killed_message">バックグラウンド サービスが予期せず停止しました。コマンドを使い続けるには、アクセシビリティ設定で再度有効にしてください。</string>
     <string name="dashboard_service_killed_dismiss">閉じる</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">モデルの上書き（任意）</string>
+    <string name="commands_model_placeholder">空欄 = プロバイダのデフォルトモデル</string>
+    <string name="settings_fallback_title">フォールバックプロバイダ</string>
+    <string name="settings_fallback_none">なし</string>
+    <string name="settings_preview_title">置き換え前にプレビュー</string>
+    <string name="settings_preview_desc">AIの結果を表示し、テキストを置き換える前に確認します（入力したコマンドのみ）</string>
+    <string name="preview_title">プレビュー</string>
+    <string name="preview_replace">置き換える</string>
+    <string name="preview_keep_original">元のままにする</string>
+    <string name="preview_kept_original">元のテキストが保持されました</string>
 </resources>

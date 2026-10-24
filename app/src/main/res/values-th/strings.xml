@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate ถูกขัดจังหวะ</string>
     <string name="dashboard_service_killed_message">บริการพื้นหลังหยุดทำงานโดยไม่คาดคิด เปิดใช้งานอีกครั้งในการตั้งค่าการเข้าถึงเพื่อใช้คำสั่งต่อไป</string>
     <string name="dashboard_service_killed_dismiss">ปิด</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">แทนที่โมเดล (ไม่บังคับ)</string>
+    <string name="commands_model_placeholder">ว่าง = โมเดลเริ่มต้นของผู้ให้บริการ</string>
+    <string name="settings_fallback_title">ผู้ให้บริการสำรอง</string>
+    <string name="settings_fallback_none">ไม่มี</string>
+    <string name="settings_preview_title">แสดงตัวอย่างก่อนแทนที่</string>
+    <string name="settings_preview_desc">แสดงผลลัพธ์ AI และถามก่อนแทนที่ข้อความของคุณ (เฉพาะคำสั่งที่พิมพ์)</string>
+    <string name="preview_title">ตัวอย่าง</string>
+    <string name="preview_replace">แทนที่</string>
+    <string name="preview_keep_original">เก็บต้นฉบับไว้</string>
+    <string name="preview_kept_original">เก็บข้อความต้นฉบับของคุณไว้แล้ว</string>
 </resources>

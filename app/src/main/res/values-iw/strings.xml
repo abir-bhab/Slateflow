@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate הופסק</string>
     <string name="dashboard_service_killed_message">שירות הרקע נעצר באופן בלתי צפוי. הפעילו אותו שוב בהגדרות הנגישות כדי להמשיך להשתמש בפקודות.</string>
     <string name="dashboard_service_killed_dismiss">ביטול</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">עקיפת מודל (אופציונלי)</string>
+    <string name="commands_model_placeholder">ריק = מודל ברירת המחדל של הספק</string>
+    <string name="settings_fallback_title">ספק גיבוי</string>
+    <string name="settings_fallback_none">ללא</string>
+    <string name="settings_preview_title">תצוגה מקדימה לפני החלפה</string>
+    <string name="settings_preview_desc">הצגת תוצאת ה-AI ושאלה לפני החלפת הטקסט (פקודות מוקלדות בלבד)</string>
+    <string name="preview_title">תצוגה מקדימה</string>
+    <string name="preview_replace">החלף</string>
+    <string name="preview_keep_original">שמור את המקור</string>
+    <string name="preview_kept_original">הטקסט המקורי שלך נשמר</string>
 </resources>

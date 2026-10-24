@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate je bil prekinjen</string>
     <string name="dashboard_service_killed_message">Storitev v ozadju se je nepričakovano ustavila. Znova jo omogočite v nastavitvah dostopnosti, da boste lahko še naprej uporabljali ukaze.</string>
     <string name="dashboard_service_killed_dismiss">Zapri</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Prepis modela (neobvezno)</string>
+    <string name="commands_model_placeholder">Prazno = privzeti model ponudnika</string>
+    <string name="settings_fallback_title">Rezervni ponudnik</string>
+    <string name="settings_fallback_none">Brez</string>
+    <string name="settings_preview_title">Predogled pred zamenjavo</string>
+    <string name="settings_preview_desc">Prikaži rezultat UI in vprašaj, preden zamenja vaše besedilo (samo vtipkani ukazi)</string>
+    <string name="preview_title">Predogled</string>
+    <string name="preview_replace">Zamenjaj</string>
+    <string name="preview_keep_original">Ohrani izvirnik</string>
+    <string name="preview_kept_original">Vaše izvirno besedilo je bilo ohranjeno</string>
 </resources>

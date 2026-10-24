@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate is onderbroken</string>
     <string name="dashboard_service_killed_message">De achtergrondservice is onverwacht gestopt. Schakel deze opnieuw in bij de toegankelijkheidsinstellingen om opdrachten te blijven gebruiken.</string>
     <string name="dashboard_service_killed_dismiss">Sluiten</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Modeloverschrijving (optioneel)</string>
+    <string name="commands_model_placeholder">Leeg = standaardmodel van provider</string>
+    <string name="settings_fallback_title">Reserveprovider</string>
+    <string name="settings_fallback_none">Geen</string>
+    <string name="settings_preview_title">Voorbeeld vóór vervangen</string>
+    <string name="settings_preview_desc">Toon het AI-resultaat en vraag bevestiging voordat je tekst wordt vervangen (alleen getypte opdrachten)</string>
+    <string name="preview_title">Voorbeeld</string>
+    <string name="preview_replace">Vervangen</string>
+    <string name="preview_keep_original">Origineel behouden</string>
+    <string name="preview_kept_original">Je originele tekst is behouden</string>
 </resources>

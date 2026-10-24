@@ -149,4 +149,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate keskeytyi</string>
     <string name="dashboard_service_killed_message">Taustapalvelu pysähtyi odottamatta. Ota se uudelleen käyttöön esteettömyysasetuksista, jotta voit jatkaa komentojen käyttöä.</string>
     <string name="dashboard_service_killed_dismiss">Sulje</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Mallin ohitus (valinnainen)</string>
+    <string name="commands_model_placeholder">Tyhjä = palveluntarjoajan oletusmalli</string>
+    <string name="settings_fallback_title">Varapalveluntarjoaja</string>
+    <string name="settings_fallback_none">Ei mitään</string>
+    <string name="settings_preview_title">Esikatselu ennen korvaamista</string>
+    <string name="settings_preview_desc">Näytä tekoälyn tulos ja kysy, ennen kuin tekstisi korvataan (vain kirjoitetut komennot)</string>
+    <string name="preview_title">Esikatselu</string>
+    <string name="preview_replace">Korvaa</string>
+    <string name="preview_keep_original">Säilytä alkuperäinen</string>
+    <string name="preview_kept_original">Alkuperäinen tekstisi säilytettiin</string>
 </resources>

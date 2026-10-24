@@ -151,4 +151,15 @@
     <string name="dashboard_service_killed_title">SwiftSlate blev afbrudt</string>
     <string name="dashboard_service_killed_message">Baggrundstjenesten stoppede uventet. Aktivér den igen i tilgængelighedsindstillingerne for at fortsætte med at bruge kommandoer.</string>
     <string name="dashboard_service_killed_dismiss">Afvis</string>
+    <!-- Smart upgrades (Slateflow) -->
+    <string name="commands_model_label">Tilsidesæt model (valgfrit)</string>
+    <string name="commands_model_placeholder">Tom = udbyderens standardmodel</string>
+    <string name="settings_fallback_title">Reserveudbyder</string>
+    <string name="settings_fallback_none">Ingen</string>
+    <string name="settings_preview_title">Forhåndsvisning før erstatning</string>
+    <string name="settings_preview_desc">Vis AI-resultatet og spørg, før din tekst erstattes (kun indtastede kommandoer)</string>
+    <string name="preview_title">Forhåndsvisning</string>
+    <string name="preview_replace">Erstat</string>
+    <string name="preview_keep_original">Behold originalen</string>
+    <string name="preview_kept_original">Din originale tekst blev beholdt</string>
 </resources>

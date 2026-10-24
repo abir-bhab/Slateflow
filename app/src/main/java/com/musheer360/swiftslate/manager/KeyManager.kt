@@ -18,9 +18,10 @@ class KeyManager internal constructor(
 
     /**
      * Keys live in one pool per provider (smart upgrades), so a command can fall back to a
-     * second provider with that provider's own keys. Before pools, a single shared array
-     * served whichever provider was active; [getKeys] migrates it into the active
-     * provider's pool on first read.
+     * second provider with that provider's own keys. The canonical [PREF_KEY_ARRAY] slot
+     * always holds the *active* provider's pool — the storage layout the app has always
+     * used — while inactive providers' pools wait in side slots named by this function
+     * until [ensureCanonicalOwnership] swaps them in.
      */
     private fun storageKeyFor(pool: String): String = "keys_array_$pool"
 
@@ -31,6 +32,8 @@ class KeyManager internal constructor(
 
     companion object {
         private const val PREF_KEY_ARRAY = "keys_array"
+        /** Which provider the canonical [PREF_KEY_ARRAY] blob currently belongs to. */
+        private const val PREF_KEY_OWNER = "keys_array_owner"
         private const val CACHE_TTL_MS = 5_000L
         private const val MAX_KEY_LENGTH = 256
         // Invalid-key marks expire. A 403 is not always the key's fault (e.g. selecting a
@@ -69,83 +72,124 @@ class KeyManager internal constructor(
      */
     @Volatile
     private var cachedCipherText: String? = null
-    /** Pool [cachedKeys] belongs to. Pools share one cache slot; switching pools reloads. */
-    @Volatile
-    private var cachedPool: String? = null
 
     val keystoreAvailable: Boolean get() = cipher.available
 
     private fun JSONArray.toStringList(): List<String> =
         (0 until length()).map { getString(it) }
 
+    /**
+     * Reconciles the canonical slot with the active provider before every canonical
+     * read/write. [PREF_KEY_OWNER] records which provider the [PREF_KEY_ARRAY] blob
+     * belongs to; when the user has switched providers since, the canonical blob moves
+     * to the old provider's side slot and the new provider's blob (if any) takes its
+     * place — so one provider's keys can never leak into another provider's commands.
+     */
     @Synchronized
-    fun getKeys(pool: String = activePool()): List<String> {
+    private fun ensureCanonicalOwnership() {
+        val active = activePool()
+        val owner = prefs.getString(PREF_KEY_OWNER, null)
+        if (owner == null) {
+            // First run under pools: the canonical blob (if any) belongs to the active
+            // provider. One interim build kept the active pool in its side slot instead,
+            // so adopt that blob when the canonical slot is empty.
+            if (prefs.getString(PREF_KEY_ARRAY, null) == null) {
+                val slotted = prefs.getString(storageKeyFor(active), null)
+                if (slotted != null) {
+                    prefs.edit().putString(PREF_KEY_ARRAY, slotted)
+                        .remove(storageKeyFor(active)).apply()
+                }
+            }
+            prefs.edit().putString(PREF_KEY_OWNER, active).apply()
+            return
+        }
+        if (owner == active) return
+        val editor = prefs.edit()
+        val canonical = prefs.getString(PREF_KEY_ARRAY, null)
+        if (canonical != null) editor.putString(storageKeyFor(owner), canonical)
+        else editor.remove(storageKeyFor(owner))
+        val incoming = prefs.getString(storageKeyFor(active), null)
+        if (incoming != null) editor.putString(PREF_KEY_ARRAY, incoming).remove(storageKeyFor(active))
+        else editor.remove(PREF_KEY_ARRAY)
+        editor.putString(PREF_KEY_OWNER, active).apply()
+        cachedKeys = null
+        cachedCipherText = null
+        cacheTimestamp = 0L
+    }
+
+    @Synchronized
+    fun getKeys(): List<String> {
+        ensureCanonicalOwnership()
         val now = System.currentTimeMillis()
         val cached = cachedKeys
-        if (cached != null && cachedPool == pool && now - cacheTimestamp < CACHE_TTL_MS) return cached
-        val poolKey = storageKeyFor(pool)
-        var stored = prefs.getString(poolKey, null)
-        if (stored == null && pool == activePool()) {
-            // One-time pool migration: the pre-pool store held one shared array, which belongs
-            // to whichever provider was active when pools landed. Move it raw — the value is
-            // decoded below by the same legacy/ciphertext paths either way.
-            val legacy = prefs.getString(PREF_KEY_ARRAY, null)
-            if (legacy != null) {
-                prefs.edit().putString(poolKey, legacy).remove(PREF_KEY_ARRAY).apply()
-                stored = legacy
-            }
-        }
-        val storedValue = stored ?: return emptyList()
+        if (cached != null && now - cacheTimestamp < CACHE_TTL_MS) return cached
+        val stored = prefs.getString(PREF_KEY_ARRAY, null) ?: return emptyList()
         // TTL expired but the stored ciphertext is byte-identical, so the plaintext cannot have
         // changed: revalidate the cache rather than paying for another KeyStore decrypt. Without
         // this, every 5s of active typing re-ran AES-GCM on the accessibility service's path.
-        if (cached != null && cachedPool == pool && storedValue == cachedCipherText) {
+        if (cached != null && stored == cachedCipherText) {
             cacheTimestamp = now
             return cached
         }
         // Legacy plaintext migration — can be removed once all users are on an encrypted build.
-        if (isLegacyPlaintext(storedValue)) {
+        if (isLegacyPlaintext(stored)) {
             return try {
-                val encrypted = cipher.encrypt(storedValue)
-                prefs.edit().putString(poolKey, encrypted).commit()
-                val list = JSONArray(storedValue).toStringList()
-                cacheKeys(list, encrypted, pool)
+                val encrypted = cipher.encrypt(stored)
+                prefs.edit().putString(PREF_KEY_ARRAY, encrypted).commit()
+                val list = JSONArray(stored).toStringList()
+                cacheKeys(list, encrypted)
                 list
             } catch (_: Exception) {
                 // Encryption failed (e.g. keystore invalidated) — return the plaintext keys so
                 // the user does not lose access, without caching or rewriting anything.
-                try { JSONArray(storedValue).toStringList() } catch (_: Exception) { emptyList() }
+                try { JSONArray(stored).toStringList() } catch (_: Exception) { emptyList() }
             }
         }
-        val jsonStr = cipher.decrypt(storedValue) ?: run {
-            cacheKeys(emptyList(), storedValue, pool)
+        val jsonStr = cipher.decrypt(stored) ?: run {
+            cacheKeys(emptyList(), stored)
             return emptyList()
         }
         val list = try { JSONArray(jsonStr).toStringList() } catch (_: Exception) { emptyList() }
-        cacheKeys(list, storedValue, pool)
+        cacheKeys(list, stored)
         return list
     }
 
-    private fun cacheKeys(keys: List<String>, cipherText: String?, pool: String) {
+    /**
+     * Keys of a specific provider's pool (smart upgrades) — e.g. the fallback provider a
+     * command is about to retry on. The active provider resolves to the canonical slot;
+     * any other provider's blob is read from its side slot and only decrypted, never
+     * mutated here. A pool becomes editable when its provider is made active in Settings.
+     */
+    @Synchronized
+    fun getKeys(pool: String): List<String> {
+        if (pool == activePool()) return getKeys()
+        val stored = prefs.getString(storageKeyFor(pool), null) ?: return emptyList()
+        if (isLegacyPlaintext(stored)) {
+            return try { JSONArray(stored).toStringList() } catch (_: Exception) { emptyList() }
+        }
+        val jsonStr = cipher.decrypt(stored) ?: return emptyList()
+        return try { JSONArray(jsonStr).toStringList() } catch (_: Exception) { emptyList() }
+    }
+
+    private fun cacheKeys(keys: List<String>, cipherText: String?) {
         cachedKeys = keys
         cachedCipherText = cipherText
-        cachedPool = pool
         cacheTimestamp = System.currentTimeMillis()
     }
 
     @Synchronized
-    private fun saveKeys(keys: List<String>, pool: String): Boolean {
+    private fun saveKeys(keys: List<String>): Boolean {
+        ensureCanonicalOwnership()
         val arr = JSONArray(keys)
         return try {
             val cipherText = cipher.encrypt(arr.toString())
-            prefs.edit().putString(storageKeyFor(pool), cipherText).apply()
-            cacheKeys(keys, cipherText, pool)
+            prefs.edit().putString(PREF_KEY_ARRAY, cipherText).apply()
+            cacheKeys(keys, cipherText)
             true
         } catch (_: Exception) {
             // Invalidate: the stored value and the in-memory list may now disagree.
             cachedKeys = null
             cachedCipherText = null
-            cachedPool = null
             cacheTimestamp = 0L
             false
         }
@@ -154,11 +198,10 @@ class KeyManager internal constructor(
     @Synchronized
     fun addKey(key: String): Boolean {
         if (key.isBlank() || key.length > MAX_KEY_LENGTH) return false
-        val pool = activePool()
-        val keys = getKeys(pool).toMutableList()
+        val keys = getKeys().toMutableList()
         if (!keys.contains(key)) {
             keys.add(key)
-            if (!saveKeys(keys, pool)) return false
+            if (!saveKeys(keys)) return false
         }
         invalidKeys.remove(key)
         return true
@@ -166,10 +209,9 @@ class KeyManager internal constructor(
 
     @Synchronized
     fun removeKey(key: String): Boolean {
-        val pool = activePool()
-        val keys = getKeys(pool).toMutableList()
+        val keys = getKeys().toMutableList()
         keys.remove(key)
-        val saved = saveKeys(keys, pool)
+        val saved = saveKeys(keys)
         rateLimitedKeys.remove(key)
         invalidKeys.remove(key)
         return saved
