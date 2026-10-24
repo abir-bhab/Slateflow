@@ -1,6 +1,7 @@
 package com.musheer360.swiftslate.service
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.musheer360.swiftslate.R
 import com.musheer360.swiftslate.api.ApiClientUtils
 import com.musheer360.swiftslate.api.ApiError
@@ -9,6 +10,7 @@ import com.musheer360.swiftslate.api.GeminiClient
 import com.musheer360.swiftslate.api.OpenAICompatibleClient
 import com.musheer360.swiftslate.manager.KeyManager
 import com.musheer360.swiftslate.model.PrefKeys
+import com.musheer360.swiftslate.provider.ProviderConfig
 import com.musheer360.swiftslate.provider.Providers
 import com.musheer360.swiftslate.provider.Transport
 import java.util.Locale
@@ -32,6 +34,13 @@ private const val STRUCTURED_OUTPUT_RETRY_MS = 86_400_000L // re-try structured 
  * — the accessibility service for a typed `?trigger`, the text-selection sheet for a tapped
  * one — so a fix to the request policy lands in both at once.
  *
+ * Smart upgrades layered on the original policy:
+ * - [commandModel] pins this command to a specific model of the resolved provider, so a
+ *   quick command can run on a fast model while a heavy one uses a smarter model.
+ * - When the active provider fails outright (or is not configured) and the user picked a
+ *   fallback provider in Settings, the command is retried once against that provider,
+ *   using the fallback provider's own key pool and its globally selected model.
+ *
  * Knows nothing about how the result is delivered: no nodes, no toasts, no UI state. Suspends
  * on the caller's dispatcher and reads disk (prefs, Keystore), so call it off the main thread.
  *
@@ -45,6 +54,7 @@ suspend fun runTextCommand(
     openAIClient: OpenAICompatibleClient,
     prompt: String,
     text: String,
+    commandModel: String? = null,
     onFirstAttempt: () -> Unit = {}
 ): CommandOutcome {
     // keys_keystore_error rather than a "reinstall" message: the usual cause is the Keystore key
@@ -54,15 +64,72 @@ suspend fun runTextCommand(
     }
 
     val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-    val provider = Providers.forType(prefs.getString(PrefKeys.PROVIDER_TYPE, null))
-    val model = provider.sanitizeModel(prefs.getString(provider.modelPrefKey, provider.defaultModel))
+    val primary = Providers.forType(prefs.getString(PrefKeys.PROVIDER_TYPE, null))
+    val primaryModel = commandModel?.trim()?.takeIf { it.isNotEmpty() }
+        ?.let { primary.sanitizeModel(it) }
+        ?: primary.sanitizeModel(prefs.getString(primary.modelPrefKey, primary.defaultModel))
+    val temperature = prefs.getFloat(PrefKeys.TEMPERATURE, DEFAULT_TEMPERATURE).toDouble()
+    val useStructuredOutput = System.currentTimeMillis() -
+        prefs.getLong(PrefKeys.STRUCTURED_OUTPUT_DISABLED_AT, 0L) > STRUCTURED_OUTPUT_RETRY_MS
+
+    val outcome = attemptProvider(
+        context, keyManager, geminiClient, openAIClient, prefs,
+        provider = primary, model = primaryModel,
+        prompt = prompt, text = text,
+        temperature = temperature, useStructuredOutput = useStructuredOutput,
+        onFirstAttempt = onFirstAttempt
+    )
+    if (outcome is CommandOutcome.Success || outcome is CommandOutcome.Refusal) return outcome
+
+    // Cross-provider fallback: only a different, explicitly chosen provider with keys of its
+    // own is worth retrying on. Its Success/Refusal wins; anything else keeps the primary
+    // outcome, whose message describes the provider the user actually selected.
+    val fallbackPref = prefs.getString(PrefKeys.FALLBACK_PROVIDER, "") ?: ""
+    if (fallbackPref.isNotBlank()) {
+        val fallback = Providers.forType(fallbackPref)
+        if (fallback.type == fallbackPref && fallback.type != primary.type &&
+            keyManager.getKeys(fallback.type).isNotEmpty()
+        ) {
+            val fallbackModel =
+                fallback.sanitizeModel(prefs.getString(fallback.modelPrefKey, fallback.defaultModel))
+            val fallbackOutcome = attemptProvider(
+                context, keyManager, geminiClient, openAIClient, prefs,
+                provider = fallback, model = fallbackModel,
+                prompt = prompt, text = text,
+                temperature = temperature, useStructuredOutput = useStructuredOutput,
+                onFirstAttempt = {}
+            )
+            if (fallbackOutcome is CommandOutcome.Success || fallbackOutcome is CommandOutcome.Refusal) {
+                return fallbackOutcome
+            }
+        }
+    }
+    return outcome
+}
+
+/**
+ * One full attempt cycle against a single [provider]: configuration check, then one request
+ * per key in that provider's pool, with the original benching and error-mapping policy.
+ */
+private suspend fun attemptProvider(
+    context: Context,
+    keyManager: KeyManager,
+    geminiClient: GeminiClient,
+    openAIClient: OpenAICompatibleClient,
+    prefs: SharedPreferences,
+    provider: ProviderConfig,
+    model: String,
+    prompt: String,
+    text: String,
+    temperature: Double,
+    useStructuredOutput: Boolean,
+    onFirstAttempt: () -> Unit
+): CommandOutcome {
+    val pool = provider.type
     val endpoint = provider.resolveEndpoint(prefs.getString(PrefKeys.CUSTOM_ENDPOINT, "") ?: "")
     if (!provider.isConfigured(model, endpoint)) {
         return CommandOutcome.Unavailable(context.getString(R.string.toast_custom_not_configured))
     }
-    val temperature = prefs.getFloat(PrefKeys.TEMPERATURE, DEFAULT_TEMPERATURE).toDouble()
-    val useStructuredOutput = System.currentTimeMillis() -
-        prefs.getLong(PrefKeys.STRUCTURED_OUTPUT_DISABLED_AT, 0L) > STRUCTURED_OUTPUT_RETRY_MS
 
     var lastErrorMsg: String? = null
     var lastErrorWasRateLimit = false
@@ -73,9 +140,9 @@ suspend fun runTextCommand(
 
     // One attempt per configured key; getNextKey skips the ones already tried, plus any that are
     // benched for rate limiting or known-invalid.
-    val maxAttempts = keyManager.getKeys().size.coerceAtLeast(1)
+    val maxAttempts = keyManager.getKeys(pool).size.coerceAtLeast(1)
     while (tried.size < maxAttempts) {
-        val key = keyManager.getNextKey(tried) ?: break
+        val key = keyManager.getNextKey(tried, pool) ?: break
         tried.add(key)
         if (!started) {
             started = true
@@ -135,7 +202,7 @@ suspend fun runTextCommand(
                     // Never bench the last remaining key: with no fallback to rotate to, the
                     // 15-minute invalid mark just turned every later trigger into "all keys
                     // invalid" with no recovery path until a process restart.
-                    if (keyManager.getKeys().size > 1) {
+                    if (keyManager.getKeys(pool).size > 1) {
                         keyManager.markInvalid(key)
                     }
                 }
@@ -152,7 +219,7 @@ suspend fun runTextCommand(
         }
     }
 
-    val waitMs = keyManager.getShortestWaitTimeMs()
+    val waitMs = keyManager.getShortestWaitTimeMs(pool)
     val failedKey = lastFailedKey
     val raw = lastErrorMsg
     return CommandOutcome.Failure(
@@ -168,13 +235,13 @@ suspend fun runTextCommand(
             lastErrorWasPermission -> context.getString(R.string.error_no_model_access)
             raw != null -> {
                 val mapped = ErrorMessages.map(raw)
-                if (mapped == R.string.error_invalid_key && failedKey != null && keyManager.getKeys().size > 1) {
+                if (mapped == R.string.error_invalid_key && failedKey != null && keyManager.getKeys(pool).size > 1) {
                     context.getString(R.string.error_invalid_key_with_hint, "••••" + failedKey.takeLast(4))
                 } else {
                     context.getString(mapped)
                 }
             }
-            keyManager.getKeys().isEmpty() -> context.getString(R.string.toast_no_keys)
+            keyManager.getKeys(pool).isEmpty() -> context.getString(R.string.toast_no_keys)
             else -> context.getString(R.string.toast_all_keys_invalid)
         }
     )

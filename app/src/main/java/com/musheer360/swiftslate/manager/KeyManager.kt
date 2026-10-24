@@ -2,6 +2,8 @@ package com.musheer360.swiftslate.manager
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.musheer360.swiftslate.model.PrefKeys
+import com.musheer360.swiftslate.model.ProviderType
 import org.json.JSONArray
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -12,6 +14,20 @@ class KeyManager internal constructor(
     constructor(context: Context) : this(context, AndroidKeystoreCipher())
 
     private val prefs: SharedPreferences = context.getSharedPreferences("secure_keys_prefs", Context.MODE_PRIVATE)
+    private val settingsPrefs: SharedPreferences = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    /**
+     * Keys live in one pool per provider (smart upgrades), so a command can fall back to a
+     * second provider with that provider's own keys. Before pools, a single shared array
+     * served whichever provider was active; [getKeys] migrates it into the active
+     * provider's pool on first read.
+     */
+    private fun storageKeyFor(pool: String): String = "keys_array_$pool"
+
+    /** The pool UI-facing calls operate on: the currently active provider's. */
+    fun activePool(): String = ProviderType.sanitize(
+        try { settingsPrefs.getString(PrefKeys.PROVIDER_TYPE, null) } catch (_: Exception) { null }
+    )
 
     companion object {
         private const val PREF_KEY_ARRAY = "keys_array"
@@ -53,6 +69,9 @@ class KeyManager internal constructor(
      */
     @Volatile
     private var cachedCipherText: String? = null
+    /** Pool [cachedKeys] belongs to. Pools share one cache slot; switching pools reloads. */
+    @Volatile
+    private var cachedPool: String? = null
 
     val keystoreAvailable: Boolean get() = cipher.available
 
@@ -60,59 +79,73 @@ class KeyManager internal constructor(
         (0 until length()).map { getString(it) }
 
     @Synchronized
-    fun getKeys(): List<String> {
+    fun getKeys(pool: String = activePool()): List<String> {
         val now = System.currentTimeMillis()
         val cached = cachedKeys
-        if (cached != null && now - cacheTimestamp < CACHE_TTL_MS) return cached
-        val stored = prefs.getString(PREF_KEY_ARRAY, null) ?: return emptyList()
+        if (cached != null && cachedPool == pool && now - cacheTimestamp < CACHE_TTL_MS) return cached
+        val poolKey = storageKeyFor(pool)
+        var stored = prefs.getString(poolKey, null)
+        if (stored == null && pool == activePool()) {
+            // One-time pool migration: the pre-pool store held one shared array, which belongs
+            // to whichever provider was active when pools landed. Move it raw — the value is
+            // decoded below by the same legacy/ciphertext paths either way.
+            val legacy = prefs.getString(PREF_KEY_ARRAY, null)
+            if (legacy != null) {
+                prefs.edit().putString(poolKey, legacy).remove(PREF_KEY_ARRAY).apply()
+                stored = legacy
+            }
+        }
+        val storedValue = stored ?: return emptyList()
         // TTL expired but the stored ciphertext is byte-identical, so the plaintext cannot have
         // changed: revalidate the cache rather than paying for another KeyStore decrypt. Without
         // this, every 5s of active typing re-ran AES-GCM on the accessibility service's path.
-        if (cached != null && stored == cachedCipherText) {
+        if (cached != null && cachedPool == pool && storedValue == cachedCipherText) {
             cacheTimestamp = now
             return cached
         }
         // Legacy plaintext migration — can be removed once all users are on an encrypted build.
-        if (isLegacyPlaintext(stored)) {
+        if (isLegacyPlaintext(storedValue)) {
             return try {
-                val encrypted = cipher.encrypt(stored)
-                prefs.edit().putString(PREF_KEY_ARRAY, encrypted).commit()
-                val list = JSONArray(stored).toStringList()
-                cacheKeys(list, encrypted)
+                val encrypted = cipher.encrypt(storedValue)
+                prefs.edit().putString(poolKey, encrypted).commit()
+                val list = JSONArray(storedValue).toStringList()
+                cacheKeys(list, encrypted, pool)
                 list
             } catch (_: Exception) {
                 // Encryption failed (e.g. keystore invalidated) — return the plaintext keys so
                 // the user does not lose access, without caching or rewriting anything.
-                try { JSONArray(stored).toStringList() } catch (_: Exception) { emptyList() }
+                try { JSONArray(storedValue).toStringList() } catch (_: Exception) { emptyList() }
             }
         }
-        val jsonStr = cipher.decrypt(stored) ?: run {
-            cacheKeys(emptyList(), stored)
+        val jsonStr = cipher.decrypt(storedValue) ?: run {
+            cacheKeys(emptyList(), storedValue, pool)
             return emptyList()
         }
         val list = try { JSONArray(jsonStr).toStringList() } catch (_: Exception) { emptyList() }
-        cacheKeys(list, stored)
+        cacheKeys(list, storedValue, pool)
         return list
     }
 
-    private fun cacheKeys(keys: List<String>, cipherText: String?) {
+    private fun cacheKeys(keys: List<String>, cipherText: String?, pool: String) {
         cachedKeys = keys
         cachedCipherText = cipherText
+        cachedPool = pool
         cacheTimestamp = System.currentTimeMillis()
     }
 
     @Synchronized
-    private fun saveKeys(keys: List<String>): Boolean {
+    private fun saveKeys(keys: List<String>, pool: String): Boolean {
         val arr = JSONArray(keys)
         return try {
             val cipherText = cipher.encrypt(arr.toString())
-            prefs.edit().putString(PREF_KEY_ARRAY, cipherText).apply()
-            cacheKeys(keys, cipherText)
+            prefs.edit().putString(storageKeyFor(pool), cipherText).apply()
+            cacheKeys(keys, cipherText, pool)
             true
         } catch (_: Exception) {
             // Invalidate: the stored value and the in-memory list may now disagree.
             cachedKeys = null
             cachedCipherText = null
+            cachedPool = null
             cacheTimestamp = 0L
             false
         }
@@ -121,10 +154,11 @@ class KeyManager internal constructor(
     @Synchronized
     fun addKey(key: String): Boolean {
         if (key.isBlank() || key.length > MAX_KEY_LENGTH) return false
-        val keys = getKeys().toMutableList()
+        val pool = activePool()
+        val keys = getKeys(pool).toMutableList()
         if (!keys.contains(key)) {
             keys.add(key)
-            if (!saveKeys(keys)) return false
+            if (!saveKeys(keys, pool)) return false
         }
         invalidKeys.remove(key)
         return true
@@ -132,9 +166,10 @@ class KeyManager internal constructor(
 
     @Synchronized
     fun removeKey(key: String): Boolean {
-        val keys = getKeys().toMutableList()
+        val pool = activePool()
+        val keys = getKeys(pool).toMutableList()
         keys.remove(key)
-        val saved = saveKeys(keys)
+        val saved = saveKeys(keys, pool)
         rateLimitedKeys.remove(key)
         invalidKeys.remove(key)
         return saved
@@ -151,8 +186,8 @@ class KeyManager internal constructor(
      * at all, so the command could fail with a healthy key sitting idle.
      */
     @Synchronized
-    fun getNextKey(alreadyTried: Set<String> = emptySet()): String? {
-        val keys = getKeys()
+    fun getNextKey(alreadyTried: Set<String> = emptySet(), pool: String = activePool()): String? {
+        val keys = getKeys(pool)
         if (keys.isEmpty()) return null
 
         val now = System.currentTimeMillis()
@@ -204,8 +239,8 @@ class KeyManager internal constructor(
         return true
     }
 
-    fun getShortestWaitTimeMs(): Long? {
-        val keys = getKeys()
+    fun getShortestWaitTimeMs(pool: String = activePool()): Long? {
+        val keys = getKeys(pool)
         if (keys.isEmpty()) return null
         val now = System.currentTimeMillis()
         val waits = keys.filter { !isInvalid(it) }

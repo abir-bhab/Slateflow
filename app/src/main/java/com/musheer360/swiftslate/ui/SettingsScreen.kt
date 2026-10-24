@@ -60,6 +60,12 @@ fun SettingsScreen(commandManager: CommandManager, prefs: SharedPreferences, key
     var providerType by remember { mutableStateOf(prefs.getString(PrefKeys.PROVIDER_TYPE, ProviderType.GEMINI) ?: ProviderType.GEMINI) }
     var providerExpanded by remember { mutableStateOf(false) }
 
+    var fallbackProvider by remember { mutableStateOf(prefs.getString(PrefKeys.FALLBACK_PROVIDER, "") ?: "") }
+    var fallbackExpanded by remember { mutableStateOf(false) }
+    var previewBeforeReplace by remember {
+        mutableStateOf(try { prefs.getBoolean(PrefKeys.PREVIEW_BEFORE_REPLACE, false) } catch (_: Exception) { false })
+    }
+
     var selectedModel by remember { mutableStateOf(prefs.getString(PrefKeys.GEMINI_MODEL, "") ?: "") }
     var modelExpanded by remember { mutableStateOf(false) }
     var geminiModelList by remember { mutableStateOf(ProviderModelsCache.get(ProviderType.GEMINI)?.models ?: emptyList()) }
@@ -567,6 +573,79 @@ fun SettingsScreen(commandManager: CommandManager, prefs: SharedPreferences, key
                     inactiveTrackColor = MaterialTheme.colorScheme.outline
                 )
             )
+            Spacer(modifier = Modifier.height(rhythm.formGap))
+            Text(
+                text = stringResource(R.string.settings_fallback_title),
+                fontSize = rhythm.bodySize,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(rhythm.formGap))
+            ExposedDropdownMenuBox(
+                expanded = fallbackExpanded,
+                onExpandedChange = { fallbackExpanded = !fallbackExpanded }
+            ) {
+                SlateTextField(
+                    value = when (fallbackProvider) {
+                        ProviderType.GEMINI -> stringResource(R.string.settings_provider_gemini)
+                        ProviderType.GROQ -> stringResource(R.string.settings_provider_groq)
+                        ProviderType.CUSTOM -> stringResource(R.string.settings_provider_custom)
+                        else -> stringResource(R.string.settings_fallback_none)
+                    },
+                    onValueChange = {},
+                    readOnly = true,
+                    modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                )
+                ExposedDropdownMenu(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(10.dp),
+                    expanded = fallbackExpanded,
+                    onDismissRequest = { fallbackExpanded = false }
+                ) {
+                    val fallbackOptions = listOf(
+                        "" to R.string.settings_fallback_none,
+                        ProviderType.GEMINI to R.string.settings_provider_gemini,
+                        ProviderType.GROQ to R.string.settings_provider_groq,
+                        ProviderType.CUSTOM to R.string.settings_provider_custom
+                    )
+                    fallbackOptions.forEach { (value, labelRes) ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(labelRes)) },
+                            onClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                fallbackProvider = value
+                                prefs.edit().putString(PrefKeys.FALLBACK_PROVIDER, value).apply()
+                                fallbackExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(rhythm.formGap))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.settings_preview_title),
+                        fontSize = rhythm.bodySize,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_preview_desc),
+                        fontSize = rhythm.bodySize,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Switch(
+                    checked = previewBeforeReplace,
+                    onCheckedChange = { checked ->
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        previewBeforeReplace = checked
+                        prefs.edit().putBoolean(PrefKeys.PREVIEW_BEFORE_REPLACE, checked).apply()
+                    }
+                )
+            }
             Spacer(modifier = Modifier.height(rhythm.tightGap))
         }
 

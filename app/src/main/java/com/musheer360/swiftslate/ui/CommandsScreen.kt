@@ -57,6 +57,7 @@ fun CommandsScreen(commandManager: CommandManager) {
     }
     var trigger by rememberSaveable { mutableStateOf("") }
     var prompt by rememberSaveable { mutableStateOf("") }
+    var modelOverride by rememberSaveable { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var selectedType by rememberSaveable { mutableStateOf(CommandType.AI) }
     var editingTrigger by rememberSaveable { mutableStateOf<String?>(null) }
@@ -229,6 +230,7 @@ fun CommandsScreen(commandManager: CommandManager) {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 trigger = cmd.trigger
                                                 prompt = cmd.prompt
+                                                modelOverride = cmd.model ?: ""
                                                 selectedType = cmd.type
                                                 editingTrigger = cmd.trigger
                                                 errorMessage = null
@@ -407,6 +409,20 @@ fun CommandsScreen(commandManager: CommandManager) {
                         singleLine = false,
                         modifier = Modifier.height(100.dp)
                     )
+                    if (selectedType == CommandType.AI) {
+                        Spacer(modifier = Modifier.height(rhythm.formGap))
+                        SlateTextField(
+                            value = modelOverride,
+                            onValueChange = {
+                                // Same take()-not-guard rationale as the trigger field above.
+                                modelOverride = it.take(CommandManager.MAX_MODEL_LENGTH)
+                                errorMessage = null
+                            },
+                            label = { Text(stringResource(R.string.commands_model_label)) },
+                            placeholder = { Text(stringResource(R.string.commands_model_placeholder)) },
+                            singleLine = true
+                        )
+                    }
                     errorMessage?.let { msg ->
                         Text(
                             text = msg,
@@ -421,6 +437,7 @@ fun CommandsScreen(commandManager: CommandManager) {
                             onClick = {
                                 trigger = ""
                                 prompt = ""
+                                modelOverride = ""
                                 errorMessage = null
                                 editingTrigger = null
                                 selectedType = CommandType.AI
@@ -463,13 +480,19 @@ fun CommandsScreen(commandManager: CommandManager) {
                                 // Single atomic write: replaces the command being edited (or the
                                 // same trigger, when adding) without a delete-then-add window.
                                 val saved = commandManager.saveCustomCommand(
-                                    command = Command(trimmedTrigger, prompt.trim(), false, selectedType),
+                                    command = Command(
+                                        trimmedTrigger, prompt.trim(), false, selectedType,
+                                        model = if (selectedType == CommandType.AI) {
+                                            modelOverride.trim().ifBlank { null }
+                                        } else null
+                                    ),
                                     replacing = editingTrigger ?: trimmedTrigger
                                 )
                                 commands = commandManager.getCommands()
                                 if (!saved) return@Button
                                 trigger = ""
                                 prompt = ""
+                                modelOverride = ""
                                 errorMessage = null
                                 editingTrigger = null
                                 selectedType = CommandType.AI
@@ -500,6 +523,7 @@ fun CommandsScreen(commandManager: CommandManager) {
                     if (editingTrigger == triggerToDelete) {
                         trigger = ""
                         prompt = ""
+                        modelOverride = ""
                         errorMessage = null
                         editingTrigger = null
                         selectedType = CommandType.AI

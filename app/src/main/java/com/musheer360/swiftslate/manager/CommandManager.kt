@@ -47,6 +47,13 @@ class CommandManager(context: Context) {
         const val MAX_PROMPT_LENGTH = 5_000
         const val MAX_CUSTOM_COMMANDS = 100
 
+        /** Cap for the optional per-command model override (smart upgrades). */
+        const val MAX_MODEL_LENGTH = 120
+
+        /** Normalizes a stored model override: trimmed, capped, blank becomes null (no override). */
+        fun sanitizeModelOverride(raw: String?): String? =
+            raw?.trim()?.take(MAX_MODEL_LENGTH)?.takeIf { it.isNotEmpty() }
+
         /**
          * Whether a custom command is storable. Applied by both [saveCustomCommand] and
          * [importCommands]: the limits used to live only in the import path, so the UI could
@@ -122,6 +129,7 @@ class CommandManager(context: Context) {
             newObj.put("trigger", migrated)
             newObj.put("prompt", prompt)
             newObj.put("type", obj.optString("type", CommandType.AI.name))
+            sanitizeModelOverride(obj.optString("model", ""))?.let { newObj.put("model", it) }
             newArr.put(newObj)
         }
         prefs.edit().putString("custom_commands", newArr.toString()).apply()
@@ -193,7 +201,8 @@ class CommandManager(context: Context) {
             if (trigger.isEmpty() || prompt.isEmpty()) continue
             if (!trigger.startsWith(prefix)) needsMigration = true
             customCommands.add(Command(trigger, prompt, false,
-                try { CommandType.valueOf(obj.optString("type", CommandType.AI.name)) } catch (_: Exception) { CommandType.AI }))
+                try { CommandType.valueOf(obj.optString("type", CommandType.AI.name)) } catch (_: Exception) { CommandType.AI },
+                sanitizeModelOverride(obj.optString("model", ""))))
         }
         // Self-heal prefix mismatch (e.g. crash between two apply() calls in setTriggerPrefix)
         if (needsMigration && !migrating) {
@@ -239,6 +248,7 @@ class CommandManager(context: Context) {
         newObj.put("trigger", command.trigger)
         newObj.put("prompt", command.prompt)
         newObj.put("type", command.type.name)
+        sanitizeModelOverride(command.model)?.let { newObj.put("model", it) }
         newArr.put(newObj)
         prefs.edit().putString("custom_commands", newArr.toString()).apply()
         invalidateCache()
@@ -298,6 +308,7 @@ class CommandManager(context: Context) {
                 out.put("prompt", prompt)
                 out.put("type",
                     if (type == CommandType.TEXT_REPLACER.name) CommandType.TEXT_REPLACER.name else CommandType.AI.name)
+                sanitizeModelOverride(obj.optString("model", ""))?.let { out.put("model", it) }
                 cleaned.put(out)
             }
             if (arr.length() > 0 && cleaned.length() == 0) return false

@@ -23,6 +23,7 @@ import com.musheer360.swiftslate.manager.KeyManager
 import com.musheer360.swiftslate.manager.StatsManager
 import com.musheer360.swiftslate.model.Command
 import com.musheer360.swiftslate.model.CommandType
+import com.musheer360.swiftslate.model.PrefKeys
 import com.musheer360.swiftslate.ui.processtext.ProcessTextEdit
 import com.musheer360.swiftslate.ui.processtext.ProcessTextReplacementBridge
 import com.musheer360.swiftslate.ui.processtext.resolveProcessTextEdit
@@ -92,6 +93,7 @@ class AssistantService : AccessibilityService() {
     private var lastTriggerRefresh = 0L
     private var watchdogRunnable: Runnable? = null
     private val overlayToast by lazy { OverlayToast(this@AssistantService, handler) }
+    private val previewOverlay by lazy { PreviewOverlay(this@AssistantService, handler) }
 
     /**
      * Stable identity for the field an undo point belongs to.
@@ -488,7 +490,7 @@ class AssistantService : AccessibilityService() {
                 val outcome = withTimeout(90_000) {
                     runTextCommand(
                         applicationContext, keyManager, client, openAIClient,
-                        command.prompt, text
+                        command.prompt, text, commandModel = command.model
                     ) { spinnerJob = startInlineSpinner(source, originalText) }
                 }
                 // From the first attempt onward the field holds the spinner glyph instead of the
@@ -501,7 +503,26 @@ class AssistantService : AccessibilityService() {
 
                 when (outcome) {
                     is CommandOutcome.Success -> {
-                        if (!replaceText(source, outcome.text)) {
+                        // Preview-before-replace (smart upgrades, opt-in): restore the user's
+                        // text first so the field never sits on the spinner glyph while they
+                        // decide, then show the result for approval. Keeping the original —
+                        // or letting the preview time out — leaves the field exactly as it
+                        // was, with no undo point and no usage recorded.
+                        val previewEnabled = try {
+                            getSharedPreferences("settings", Context.MODE_PRIVATE)
+                                .getBoolean(PrefKeys.PREVIEW_BEFORE_REPLACE, false)
+                        } catch (_: Exception) { false }
+                        var approved = true
+                        if (previewEnabled) {
+                            replaceText(source, originalText)
+                            approved = withContext(Dispatchers.Main) {
+                                previewOverlay.awaitDecision(outcome.text)
+                            }
+                        }
+                        if (!approved) {
+                            performHapticFeedback(HapticFeedbackConstants.REJECT)
+                            showToast(getString(R.string.preview_kept_original))
+                        } else if (!replaceText(source, outcome.text)) {
                             // The field rejected the write. Restore the user's text, and don't
                             // record an undo point or a CONFIRM haptic for text that never landed.
                             replaceText(source, originalText)
@@ -1042,6 +1063,7 @@ class AssistantService : AccessibilityService() {
         isProcessing.set(false)
         currentJob?.cancel()
         serviceJob.cancelChildren()
+        previewOverlay.dismiss()
         handler.removeCallbacksAndMessages(null)
         lastReplacedText = null
         lastReplacedAt = 0L
@@ -1058,6 +1080,7 @@ class AssistantService : AccessibilityService() {
         lastReplacedAt = 0L
         lastReplacedSource?.safeRecycle()
         lastReplacedSource = null
+        previewOverlay.dismiss()
         handler.removeCallbacksAndMessages(null)
         overlayToast.dismiss()
         serviceScope.cancel()

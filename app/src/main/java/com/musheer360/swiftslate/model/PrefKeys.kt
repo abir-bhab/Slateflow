@@ -28,6 +28,15 @@ object PrefKeys {
     /** Sampling temperature (Float). */
     const val TEMPERATURE = "temperature"
 
+    /**
+     * Fallback provider ("gemini" | "groq" | "custom") retried when the active provider
+     * fails outright, or "" when fallback is off (smart upgrades).
+     */
+    const val FALLBACK_PROVIDER = "fallback_provider"
+
+    /** Whether the inline flow shows the AI result for approval before replacing (Boolean). */
+    const val PREVIEW_BEFORE_REPLACE = "preview_before_replace"
+
     /** Epoch millis when structured output was last disabled (0 = never). */
     const val STRUCTURED_OUTPUT_DISABLED_AT = "structured_output_disabled_at"
 }
